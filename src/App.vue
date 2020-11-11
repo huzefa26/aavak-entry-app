@@ -1,7 +1,8 @@
 <template>
 	<div id="app" class="container">
-		<h1 class="heading mt-4">Entry</h1>
-		<hr>
+		<app-header></app-header>
+		<!-- <h1 class="heading mt-4">Entry</h1> -->
+		<!-- <hr> -->
 		<div class="row">
 			<div class="col">
 				<app-form></app-form>
@@ -14,12 +15,14 @@
 <script>
 	import AutoComplete from './components/AutoComplete.vue';
 	import Form from './components/Form.vue';
+	import Header from './components/Header.vue';
 
 	export default {
 		name: 'App',
 		components: {
 			AutoComplete,
-			appForm: Form
+			appForm: Form,
+			appHeader: Header
 		},
 		data() {
 			return {
