@@ -20,12 +20,12 @@
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="weight">Weight : </label>
-					<input type="number" class="form-control text-right" 
+					<input type="number" step="0.01" class="form-control text-right" 
 						id="weight" v-model="weight">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="rate">Rate : </label>
-					<input type="number" class="form-control text-right" 
+					<input type="number" step="0.01" class="form-control text-right" 
 						id="rate" v-model="rate">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
@@ -34,10 +34,6 @@
 				</div>
 			</div>
 			<div class="form-row justify-content-end mt-3">
-				<!-- <div class="col-md-9 form-group">
-					<label for="notes">Notes:</label>
-					<textarea class="form-control" id="notes" rows="3"></textarea>
-				</div> -->
 				<div class="col-md-auto form-group">
 					<div class="custom-control custom-checkbox">
 						<input type="checkbox" class="custom-control-input" id="gotBill" v-model="gotBill">
@@ -45,7 +41,7 @@
 					</div>
 				</div>
 				<div class="col-md-auto my-auto form-group">
-					<button class="btn btn-light border px-3" @click="saveEntry">Add</button>
+					<button class="btn btn-light border px-3" @click="updateEntry">Add</button>
 				</div>
 			</div>
 		</div>
@@ -63,8 +59,10 @@
 		},
 		data() {
 			return {
-				names: [], // ['Alpha', 'Beta', 'Charlie', 'Delta', 'Elephant'],
-				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'], // this.$store.state.paddyTypes,
+				id: this.$route.params.id,
+				date: this.$route.params.date,
+				names: [],
+				types: this.$store.state.paddyTypes,
 
 				name: '',
 				type: '',
@@ -72,25 +70,32 @@
 				weight: 0,
 				rate: 0.0,
 				gotBill: false,
-
-				date: ''
 			};
 		},
 		created() {
-			let date = new Date();
-			this.date = date.getFullYear().toString() + '-'
-				 + (date.getMonth() + 1).toString().padStart(2, 0) + '-'
-				 + date.getDate().toString().padStart(2, 0);
-				
+			console.log(this.id);
+			// this.id = 'huzefa'
+			axios.get('entries/'+this.date+'.json?orderBy="$key"&equalTo="'+this.id+'"')
+			.then(res => {
+				if (res.data != null) {
+					let data = res.data[this.id];
+					document.getElementById('name').value = data['name'];
+					document.getElementById('type').value = data['type'];
+					this.bags = data['bags'];
+					this.weight = data['weight'];
+					this.rate = data['rate'];
+					this.gotBill = data['gotBill'];
+				}
+			}).catch(err => console.log(err));
 			axios.get('names.json/')
-				.then(res => {
-					if (res.data != null) {
-						let names = Object.values(res.data);
-						names.forEach(name => {
-							this.names.push(name[0]);
-						});
-					}
-				}).catch(err => console.error(err));
+			.then(res => {
+				if (res.data != null) {
+					let names = Object.values(res.data);
+					names.forEach(name => {
+						this.names.push(name[0]);
+					});
+				}
+			}).catch(err => console.error(err));
 		},
 		computed: {
 			total() {
@@ -98,19 +103,18 @@
 			}
 		},
 		methods: {
-			saveEntry() {
+			updateEntry() {
 				if (!this.names.includes(this.name)) {
-					// let newName = JSON.parse('{"'+this.name+'":'+this.names.length.toString()+'}');
+					// delete current name if there are no other entries of it
 					let newName = {0: this.name};
 					axios.post('names.json/', newName)
 					.then(res => {
 						console.log(res);
 					}).catch(err => console.log(err));
-
 					this.names.push(this.name);
 				}
 				let data = {
-					// id: Date.now(),
+					// id: Date.now(), step="0.01"
 					name: this.name,
 					type: this.type,
 					bags: parseInt(this.bags),
@@ -119,15 +123,12 @@
 					gotBill: this.gotBill,
 				};
 				// console.log(data);
-				axios.post('entries/' + this.date + '.json/', data)
+				axios.put('entries/'+this.date+'.json?orderBy="$key"&equalTo="'+this.id+'"', data)
 				.then(res => {
-					this.name = ''
-					this.date = ''
-					this.bags = 0
-					this.weight = 0
-					this.rate = 0.0
-					this.gotBill = false
-				});
+					console.log(res);
+					// this.$router.push('/records/' + this.date + '/');
+				})
+				.catch(err => console.error(err));
 			}
 		}
 	};

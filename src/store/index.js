@@ -6,10 +6,15 @@ Vue.use(Vuex)
 export default new Vuex.Store({
 	state: {
 		paddyTypes: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'],
+		records: [],
+		editRecord: null
 	},
 	mutations: {
 	},
 	actions: {
+		// getRecords() {
+		// 	;
+		// }
 	},
 	modules: {
 	}

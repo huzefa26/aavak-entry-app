@@ -34,7 +34,7 @@
 			}
 		},
 		created() {
-			console.log(this.today());
+			// console.log(this.today());
 		}
 	};
 </script>

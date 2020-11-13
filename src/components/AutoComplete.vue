@@ -127,7 +127,7 @@
 		mounted() {
 			if (this.showFirst && this.items.length > 0) this.search = this.items[0];
 			document.addEventListener('click', this.handleClickOutside);
-			console.log(document.getElementById(this.inputId).width);
+////////////////////// console.log(document.getElementById(this.inputId));
 		},
 		destroyed() {
 			document.removeEventListener('click', this.handleClickOutside);
