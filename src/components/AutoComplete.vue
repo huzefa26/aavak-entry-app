@@ -10,27 +10,29 @@
 			@keydown.up="onArrowUp"
 			@keydown.enter="onEnter"
 		/>
-		<ul
-			id="autocomplete-results"
-			v-show="isOpen"
-			class="autocomplete-results"
-		>
-			<li
-				class="loading"
-				v-if="isLoading"
+		<!-- <div id="autocomplete-results" v-show="isOpen" class="autocomplete-results container">
+			<div v-if="isLoading" class="row"><div class="loading col">Loading results...</div></div>
+			<div v-else>
+				<div class="autocomplete-result row" 
+					v-for="(result, i) in results" 
+					:key="i" 
+					:class="{ 'is-active': i === arrowCounter }"
+					@click="setResult(result)"
 				>
-				Loading results...
-			</li>
+					<div class="col">{{ result }}</div>
+				</div>
+			</div>
+		</div> -->
+		<ul id="autocomplete-results" v-show="isOpen" class="autocomplete-results">
+			<li class="loading" v-if="isLoading">Loading results...</li>
 			<li
 				v-else
 				v-for="(result, i) in results"
 				:key="i"
 				@click="setResult(result)"
-				class="autocomplete-result"
+				class="autocomplete-result pl-1 pr-3"
 				:class="{ 'is-active': i === arrowCounter }"
-			>
-				{{ result }}
-			</li>
+			>{{ result }}</li>
 		</ul>
 	</div>
 </template>
@@ -54,6 +56,11 @@
 				type: String,
 				required: false,
 				default: ''
+			},
+			showFirst: {
+				type: Boolean,
+				required: false,
+				default: false
 			}
 		},
 
@@ -69,14 +76,11 @@
 
 		methods: {
 			onChange() {
-				// Let's warn the parent that a change was made
 				this.$emit('input', this.search);
 
-				// Is the data given by an outside ajax request?
 				if (this.isAsync) {
 					this.isLoading = true;
 				} else {
-					// Let's our flat array
 					this.filterResults();
 					this.isOpen = true;
 				}
@@ -90,29 +94,24 @@
 			setResult(result) {
 				this.search = result;
 				this.isOpen = false;
+				this.$emit('input', result);
 			},
 			onArrowDown(evt) {
-				if (this.arrowCounter < this.results.length) {
-					this.arrowCounter = this.arrowCounter + 1;
-				}
+				if (++this.arrowCounter >= this.results.length) 
+					this.arrowCounter = 0;;
 			},
 			onArrowUp() {
-				if (this.arrowCounter > 0) {
-					this.arrowCounter = this.arrowCounter -1;
-				}
+				if (--this.arrowCounter < 0) 
+					this.arrowCounter = this.results.length - 1;
 			},
 			onEnter() {
-				this.search = this.results[this.arrowCounter];
-				this.isOpen = false;
+				this.setResult(this.results[this.arrowCounter]);
 				this.arrowCounter = -1;
 			},
 			handleClickOutside(evt) {
 				if (!this.$el.contains(evt.target)) {
 					this.isOpen = false;
 					this.arrowCounter = -1;
-				} else {
-					this.isOpen = true;
-					this.filterResults();
 				}
 			}
 		},
@@ -126,7 +125,9 @@
 			},
 		},
 		mounted() {
+			if (this.showFirst && this.items.length > 0) this.search = this.items[0];
 			document.addEventListener('click', this.handleClickOutside);
+			console.log(document.getElementById(this.inputId).width);
 		},
 		destroyed() {
 			document.removeEventListener('click', this.handleClickOutside);
@@ -146,7 +147,7 @@
 	.autocomplete-results {
 		background-color: white;
 		position: fixed;
-		z-index: 1;
+		z-index: 100;
 		padding: 0;
 		margin: 0;
 		border: 2px solid #bba;
@@ -154,17 +155,19 @@
 		border-bottom-right-radius: 4px;
 		/*height: 120px;*/
 		overflow: auto;
-		width: 100%;
+		/* display: block; */
+		width: auto;
 	}
 
 	.autocomplete-result {
 		list-style: none;
 		text-align: left;
-		padding: 4px;
+		/* padding: 5px 10px 1px 8px; */
 		cursor: pointer;
 		border-bottom: 1px solid #ddd;
 		border-bottom-left-radius: 3px;
 		border-bottom-right-radius: 3px;
+		/* width: auto; */
 	}
 
 	.autocomplete-result.is-active,

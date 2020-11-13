@@ -1,14 +1,14 @@
 <template>
 	<div class="wrapper">
-		<form>
+		<div class="form">
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete :inputId="'name'" :items="names"></auto-complete>
+					<auto-complete :inputId="'name'" :items="names" @input="name=$event"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
-					<auto-complete :inputId="'type'" :items="types"></auto-complete>
+					<auto-complete :inputId="'type'" :items="types" @input="type=$event"></auto-complete>
 				</div>
 			</div>
 			<div class="form-row">
@@ -39,37 +39,85 @@
 				</div> -->
 				<div class="col-md-auto form-group">
 					<div class="custom-control custom-checkbox">
-						<input type="checkbox" class="custom-control-input" id="gotBill">
+						<input type="checkbox" class="custom-control-input" id="gotBill" v-model="gotBill">
 						<label class="custom-control-label" for="gotBill">Bill received ? </label>
 					</div>
 				</div>
 				<div class="col-md-auto my-auto form-group">
-					<button class="btn btn-light border px-3">Add</button>
+					<button class="btn btn-light border px-3" @click="saveEntry">Add</button>
 				</div>
 			</div>
-		</form>
+		</div>
 	</div>
 </template>
 
 <script>
 	import AutoComplete from './AutoComplete.vue';
+	import axios from 'axios';
+
 	export default {
 		components: {
 			AutoComplete
 		},
 		data() {
 			return {
-				names: ['Alpha', 'Beta', 'Charlie', 'Delta', 'Elephant'],
-				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'],
+				names: [], // ['Alpha', 'Beta', 'Charlie', 'Delta', 'Elephant'],
+				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'], // this.$store.state.paddyTypes,
 
+				name: '',
+				type: '',
 				bags: 0,
 				weight: 0,
-				rate: 0.0
+				rate: 0.0,
+				gotBill: false,
+
+				date: ''
 			};
+		},
+		created() {
+			let date = new Date();
+			this.date = date.getFullYear().toString() + '-'
+				 + (date.getMonth() + 1).toString().padStart(2, 0) + '-'
+				 + date.getDate().toString().padStart(2, 0);
+				
+			axios.get('names.json/')
+				.then(res => {
+					// console.log(Object.values(res.data));
+					let names = Object.values(res.data);
+					console.log(names);
+					names.forEach(name => {
+						this.names.push(name[0]);
+					})
+				}).catch(err => console.error(err));
 		},
 		computed: {
 			total() {
 				return (this.weight * this.rate * 1.005).toFixed(2);
+			}
+		},
+		methods: {
+			saveEntry() {
+				if (!this.names.includes(this.name)) {
+					// let newName = JSON.parse('{"'+this.name+'":'+this.names.length.toString()+'}');
+					let newName = {0: this.name};
+					axios.post('names.json/', newName)
+					.then(res => {
+						console.log(res);
+					}).catch(err => console.log(err));
+
+					this.names.push(this.name);
+				}
+				let data = {
+					name: this.name,
+					type: this.type,
+					bags: parseInt(this.bags),
+					weight: parseFloat(this.weight),
+					rate: parseFloat(this.rate),
+					gotBill: this.gotBill,
+					// date: this.date
+				};
+				// console.log(data);
+				axios.post('entries/' + this.date + '.json/', data);
 			}
 		}
 	};
