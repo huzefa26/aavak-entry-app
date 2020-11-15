@@ -5,11 +5,11 @@
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete :inputId="'name'" :items="names" @input="name=$event"></auto-complete>
+					<auto-complete inputId="name" :items="names" @input="name=$event"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
-					<auto-complete :inputId="'type'" :items="types" @input="type=$event"></auto-complete>
+					<auto-complete inputId="type" :items="types" @input="type=$event"></auto-complete>
 				</div>
 			</div>
 			<div class="form-row">
@@ -98,37 +98,36 @@
 			}
 		},
 		methods: {
-			saveEntry() {
-				if (!this.names.includes(this.name)) {
-					// let newName = JSON.parse('{"'+this.name+'":'+this.names.length.toString()+'}');
-					let newName = {0: this.name};
-					axios.post('names.json/', newName)
-					.then(res => {
-						console.log(res);
-					}).catch(err => console.log(err));
 
-					this.names.push(this.name);
+			validEntry() {
+				return true;
+			},
+
+			saveEntry() {
+				if (!this.validEntry()) {
+					return;
 				}
-				let data = {
-					// id: Date.now(),
-					name: this.name,
+				if (!this.names.includes(this.name)) {
+					let nameObj = '{"'+this.names.length.toString()+'": "'+this.name+'"}';
+					// console.log(nameObj);
+					axios.patch('names.json/', JSON.parse(nameObj))
+					.then(res => {
+						this.names.push(this.name);
+					})
+					.catch(err => console.error(err));
+				}
+				axios.post('entries/'+this.date+'/'+this.name+'.json/', {
 					type: this.type,
 					bags: parseInt(this.bags),
 					weight: parseFloat(this.weight),
 					rate: parseFloat(this.rate),
 					gotBill: this.gotBill,
-				};
-				// console.log(data);
-				axios.post('entries/' + this.date + '.json/', data)
-				.then(res => {
-					this.name = ''
-					this.date = ''
-					this.bags = 0
-					this.weight = 0
-					this.rate = 0.0
+				}).then(res => {
+					this.bags = this.weight = this.rate = 0
 					this.gotBill = false
-				});
+				}).catch(err => console.error(err));
 			}
+
 		}
 	};
 </script>
