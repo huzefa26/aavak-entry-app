@@ -21,29 +21,31 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr v-for="(record, i) in records" :key="i">
-			<th scope="row">{{ i+1 }}</th>
-			<td>{{ record.name }}</td>
-			<td class="text-center">{{ record.type }}</td>
-			<td class="text-center">{{ record.bags }}</td>
-			<td class="text-center">{{ record.weight }}</td>
-			<td class="text-center">{{ record.rate }}</td>
-			<td class="text-center">{{ (record.weight * record.rate * 1.005).toFixed(2) }}</td>
-			<td class="text-center" style="color: green">{{ record.gotBill ? "&#10003;" : ""}}</td> <!-- &#10007; -->
-			<td class="text-center">
-				<router-link tag="span" class="btn py-0" :to="'/edit/'+date+'/'+record.id">
-				<!-- <span class="btn py-0" @click="editEntry(i)"> -->
-					<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-					<!-- <img src="https://img.icons8.com/fluent/24/000000/edit.png"/> -->
-				</router-link>
-				<!-- </span> -->
-				<span class="btn py-0" @click="deleteEntry(i)">
-					<i class="fa fa-trash-o" aria-hidden="true"></i>
-					<!-- <img src="https://img.icons8.com/flat_round/24/000000/delete-sign.png"/> -->
-					<!-- <span>&#10060;</span> -->
-				</span>
-			</td>
-		</tr>
+		<div v-for="(record, name) in records" :key="name" class="border-bottom">
+			<tr v-for="(entry, i) in Object.values(record)" :key="i">
+				<th scope="row">{{ i+1 }}</th>
+				<td>{{ i==0 ? name : "" }}</td>
+				<td class="text-center">{{ entry.type }}</td>
+				<td class="text-center">{{ entry.bags }}</td>
+				<td class="text-center">{{ entry.weight }}</td>
+				<td class="text-center">{{ entry.rate }}</td>
+				<td class="text-center">{{ (entry.weight * entry.rate * 1.005).toFixed(2) }}</td>
+				<td class="text-center" style="color: green">{{ entry.gotBill ? "&#10003;" : ""}}</td> <!-- &#10007; -->
+				<td class="text-center">
+					<router-link tag="span" class="btn py-0" :to="'/edit/'+date+'/'+record.id">
+					<!-- <span class="btn py-0" @click="editEntry(i)"> -->
+						<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
+						<!-- <img src="https://img.icons8.com/fluent/24/000000/edit.png"/> -->
+					</router-link>
+					<!-- </span> -->
+					<span class="btn py-0" @click="deleteEntry(i)">
+						<i class="fa fa-trash-o" aria-hidden="true"></i>
+						<!-- <img src="https://img.icons8.com/flat_round/24/000000/delete-sign.png"/> -->
+						<!-- <span>&#10060;</span> -->
+					</span>
+				</td>
+			</tr>
+		</div>
 	</tbody>
 </table>
 
@@ -64,12 +66,8 @@ export default {
 	},
 	created() {
 		axios.get('entries/' + this.date + '.json/').then(res => {
-			Object.keys(res.data).forEach(key => {
-				let record = res.data[key];
-				record['id'] = key;
-				this.records.push(record);
-			});
-			// this.records = Object.values(res.data);
+			console.log(res.data);
+			this.records = res.data;
 			this.isLoading = false;
 		}).catch(err => console.error(err));
 	},
