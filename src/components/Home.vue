@@ -5,7 +5,7 @@
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete inputId="name" :items="names" @input="name=$event"></auto-complete>
+					<auto-complete inputId="name" :items="Object.keys(names)" @input="name=$event"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
@@ -33,18 +33,25 @@
 					<input type="number" class="form-control text-right" id="rate" :value="total" disabled>
 				</div>
 			</div>
-			<div class="form-row justify-content-end mt-3">
+			<div class="form-row justify-content-md-between mt-3">
 				<!-- <div class="col-md-9 form-group">
 					<label for="notes">Notes:</label>
 					<textarea class="form-control" id="notes" rows="3"></textarea>
 				</div> -->
-				<div class="col-md-auto form-group">
-					<div class="custom-control custom-checkbox">
-						<input type="checkbox" class="custom-control-input" id="gotBill" v-model="gotBill">
-						<label class="custom-control-label" for="gotBill">Bill received ? </label>
-					</div>
+				<div class="col-md-auto mb-3 form-group pt-2 d-flex justify-content-center">
+					<label class="checkbox">
+						<input type="checkbox" id="gotBill" v-model="gotBill" />
+						<span class="default"></span>
+					</label>
+					<label for="gotBill" class="ls-5 px-2">Bill Received ?</label>
 				</div>
-				<div class="col-md-auto my-auto form-group">
+				<!-- <div class="alert alert-warning alert-dismissible fade show" role="alert">
+					<strong>Holy guacamole!</strong> You should check in on some of those fields below.
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div> -->
+				<div class="col-md-auto mb-3 form-group d-flex justify-content-center">
 					<button class="btn btn-light border px-3" @click="saveEntry">Add</button>
 				</div>
 			</div>
@@ -63,7 +70,7 @@
 		},
 		data() {
 			return {
-				names: [], // ['Alpha', 'Beta', 'Charlie', 'Delta', 'Elephant'],
+				names: [],
 				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'], // this.$store.state.paddyTypes,
 
 				name: '',
@@ -85,21 +92,22 @@
 			axios.get('names.json/')
 				.then(res => {
 					if (res.data != null) {
-						let names = Object.values(res.data);
-						names.forEach(name => {
-							this.names.push(name[0]);
-						});
+						this.names = res.data;
 					}
 				}).catch(err => console.error(err));
 		},
 		computed: {
 			total() {
-				return (this.weight * this.rate * 1.005).toFixed(2);
+				return (this.weight * this.rate/* * 1.005*/).toFixed(2);
 			}
 		},
 		methods: {
 
 			validEntry() {
+				if (this.name.trim() == '') return false;
+				if (this.type.trim() == '') return false;
+				if (this.bags == 0) return false;
+				if (this.total == 0) return false;
 				return true;
 			},
 
@@ -107,16 +115,23 @@
 				if (!this.validEntry()) {
 					return;
 				}
-				if (!this.names.includes(this.name)) {
-					let nameObj = '{"'+this.names.length.toString()+'": "'+this.name+'"}';
-					// console.log(nameObj);
-					axios.patch('names.json/', JSON.parse(nameObj))
-					.then(res => {
-						this.names.push(this.name);
-					})
+				this.name = this.name.toLowerCase();
+				if (Object.keys(this.names).includes(this.name)) {
+					for(let name in this.names) {
+						if (name == this.name) {
+							++this.names[name];
+						}
+					}
+					axios.put('names.json/?print=silent', this.names)
+					.then(()=>{})
+					.catch(err => console.error(err));
+				} else {
+					let nameObj = JSON.parse('{"'+this.name+'": 1}');
+					axios.patch('names.json/?print=silent', nameObj)
+					.then(() => this.names[this.name]=1)
 					.catch(err => console.error(err));
 				}
-				axios.post('entries/'+this.date+'/'+this.name+'.json/', {
+				axios.post('entries/'+this.date+'/'+this.name+'.json/?print=silent', {
 					type: this.type,
 					bags: parseInt(this.bags),
 					weight: parseFloat(this.weight),
@@ -126,10 +141,19 @@
 					this.bags = this.weight = this.rate = 0
 					this.gotBill = false
 				}).catch(err => console.error(err));
-			}
+			},
+
+			titleCase(str) {
+				let splitStr = str.toLowerCase().split(' ');
+				for (let i = 0; i < splitStr.length; i++) {
+					splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+				}
+				return splitStr.join(' '); 
+			},
 
 		}
 	};
+
 </script>
 
 <style scoped>
@@ -141,8 +165,9 @@
 		font-size: 120%;
 	}
 
-	label:not(.custom-control-label) {
+	label {
 		color: #777;
+		/*letter-spacing: 0.5px;*/
 	}
 	.custom-control-label {
 		font-size: 120%;
@@ -158,4 +183,60 @@
 	input[type=number] {
 		-moz-appearance: textfield;
 	}
+
+	.ls-5 {
+		letter-spacing: 0.5px;
+	}
+
+	@keyframes check {
+		0% {height: 0;width: 0;}
+		25% {height: 0;width: 10px;}
+		50% {height: 20px;width: 10px;}
+	}
+	.checkbox {
+		background-color:#fff;
+		display:inline-block;
+		width:25px; /*28px;*/
+		height:25px; /*28px*/
+		margin: .25em; /*0 .25em;*/
+		border-radius:4px;
+		border:1px solid #ccc;
+		float:right
+	}
+	.checkbox span{display:block;height:28px;position:relative;width:28px;padding:0}
+	.checkbox span:after{
+		-moz-transform:scaleX(-1) rotate(135deg);
+		-ms-transform:scaleX(-1) rotate(135deg);
+		-webkit-transform:scaleX(-1) rotate(135deg);
+		transform:scaleX(-1) rotate(135deg);
+		-moz-transform-origin:left top;
+		-ms-transform-origin:left top;
+		-webkit-transform-origin:left top;
+		transform-origin:left top;
+		border-right:4px solid #fff;
+		border-top:4px solid #fff;
+		content:'';
+		display:block;
+		height:18px; /*20px;*/
+		width:9px; /*10px;*/
+		left:2.7px; /*3px;*/
+		position:absolute;
+		top:13px; /*15px;*/
+	}
+	.checkbox span:hover:after{border-color:#999}
+	.checkbox input{display:none}
+	.checkbox input:checked + span:after{
+		-webkit-animation:check .8s;
+		-moz-animation:check .8s;
+		-o-animation:check .8s;
+		animation:check .8s;
+		border-color:#555;
+	}
+	.checkbox input:checked + .default:after{border-color:#444}
+	.checkbox input:checked + .primary:after{border-color:#2196F3}
+	.checkbox input:checked + .success:after{border-color:#8bc34a}
+	.checkbox input:checked + .info:after{border-color:#3de0f5}
+	.checkbox input:checked + .warning:after{border-color:#FFC107}
+	.checkbox input:checked + .danger:after{border-color:#f44336}
+
 </style>

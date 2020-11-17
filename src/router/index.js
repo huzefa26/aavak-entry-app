@@ -9,7 +9,7 @@ Vue.use(VueRouter)
 const routes = [
 	{ path: '/', name: 'Home', component: Home },
 	{ path: '/records/:date', name: 'Records', component: Records },
-	{ path: '/edit/:date/:id', name: 'Edit', component: EditEntry },
+	{ path: '/edit'/*/:date/:name/:idx*/, name: 'Edit', component: EditEntry },
 	// { path: '/edit', name: 'Edit', component: EditEntry },
 
 	{ path: '/*', redirect: '/'}

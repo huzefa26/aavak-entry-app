@@ -1,0 +1,12 @@
+entries.json => {date: {name: [entries]}}
+
+
+
+How about... {name: {date: [entries]}}
+
+
+How about... {name+date : [entries]}
+
+
+
+names.json => [ {name: cnt} ]  if cnt==0: remove from list

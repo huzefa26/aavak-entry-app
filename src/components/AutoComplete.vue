@@ -61,14 +61,19 @@
 				type: Boolean,
 				required: false,
 				default: false
+			},
+			value: {
+				type: String,
+				required: false,
+				default: ''
 			}
 		},
 
 		data() {
 			return {
+				search: '',
 				isOpen: false,
 				results: [],
-				search: '',
 				isLoading: false,
 				arrowCounter: 0,
 			};
@@ -77,7 +82,7 @@
 		methods: {
 			onChange() {
 				this.$emit('input', this.search);
-
+				
 				if (this.isAsync) {
 					this.isLoading = true;
 				} else {
@@ -89,7 +94,7 @@
 			filterResults() {
 				this.results = this.items.filter((item) => {
 					return item.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
-				});
+				}).map(result=>this.titleCase(result));
 			},
 			setResult(result) {
 				this.search = result;
@@ -97,11 +102,11 @@
 				this.$emit('input', result);
 			},
 			onArrowDown(evt) {
-				if (++this.arrowCounter >= this.results.length) 
-					this.arrowCounter = 0;;
+				if (++this.arrowCounter >= this.results.length)
+					this.arrowCounter = 0;
 			},
 			onArrowUp() {
-				if (--this.arrowCounter < 0) 
+				if (--this.arrowCounter < 0)
 					this.arrowCounter = this.results.length - 1;
 			},
 			onEnter() {
@@ -111,9 +116,17 @@
 			handleClickOutside(evt) {
 				if (!this.$el.contains(evt.target)) {
 					this.isOpen = false;
-					this.arrowCounter = -1;
+					// this.arrowCounter = -1;
 				}
-			}
+			},
+
+			titleCase(str) {
+				let splitStr = str.toLowerCase().split(' ');
+				for (let i = 0; i < splitStr.length; i++) {
+					splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+				}
+				return splitStr.join(' '); 
+			},
 		},
 		watch: {
 			items: function (val, oldValue) {
@@ -124,10 +137,10 @@
 				}
 			},
 		},
-		mounted() {
+		created() {
 			if (this.showFirst && this.items.length > 0) this.search = this.items[0];
+			else this.search = this.titleCase(this.value);
 			document.addEventListener('click', this.handleClickOutside);
-////////////////////// console.log(document.getElementById(this.inputId));
 		},
 		destroyed() {
 			document.removeEventListener('click', this.handleClickOutside);

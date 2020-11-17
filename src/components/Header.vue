@@ -1,16 +1,16 @@
 <template>
 	<div class="container p-0 mb-5">
-		<nav class="navbar navbar-expand-lg navbar-light bg-light justify-content-between">
-			<router-link class="navbar-brand" to="/"><h1>Entry</h1></router-link>	
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-				<span class="navbar-toggler-icon"></span>
+		<nav class="navbar navbar-expand-md navbar-light  justify-content-between">
+			<router-link tag="a" class="navbar-brand" to="/"><h1>Entry</h1></router-link>	
+			<button id="togglerButton" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon font-weight-bold"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-				<div class="form-inline my-2 my-lg-0 ml-auto">
-					<input class="form-control mr-sm-2" type="date" v-model="date" aria-label="Date">
-					<router-link class="btn btn-outline-success my-2 my-sm-0" :to="'/records/'+date">
+				<div class="form-inline form-row my-2 my-md-0 ml-auto mr-md-0 mr-auto">
+					<input class="col form-control mr-1 bg-light" type="date" v-model="date" aria-label="Date">
+					<button class="col btn btn-outline-dark my-2 my-md-0 px-md-2 ml-1"  @click="searched">
 						Search
-					</router-link>
+					</button>
 				</div>
 			</div>
 		</nav>
@@ -31,22 +31,36 @@
 				return date.getFullYear().toString() + '-'
 				 + (date.getMonth() + 1).toString().padStart(2, 0) + '-'
 				 + date.getDate().toString().padStart(2, 0);
+			},
+			searched() {
+				if (this.$router.currentRoute.path != '/records/' + this.date +'/') {
+					document.getElementById('togglerButton').click();
+					this.$router.push('/records/' + this.date +'/');
+				}
 			}
-		},
-		created() {
-			// console.log(this.today());
 		}
 	};
 </script>
 
 <style scoped>
+	
+	div.container {
+		border-bottom: 1px solid #44aa5a;
+	}
+
+	.navbar {
+		background-color: #eee;
+	}
+
 	a, input[type=date] {
 		font-size: 120%;
 	}
-	/*.navbar {
-		background-color: #e3f2fd;
+
+	/*input[type=date]::-webkit-datetime-edit-fields-wrapper {
+		padding-right: 0;
 	}*/
-	div.container {
-		border-bottom: 1px solid #44aa5a;
+	/*input[type=date]::-webkit-calendar-picker-indicator {}*/
+	input[type=date]::-webkit-datetime-edit-text {
+		color: silver;
 	}
 </style>
