@@ -45,7 +45,9 @@
 <style scoped>
 	
 	div.container {
-		border-bottom: 1px solid #44aa5a;
+		border-bottom: 2px solid #444;
+		border-bottom-left-radius: 1px;
+		border-bottom-right-radius: 1px;
 	}
 
 	.navbar {

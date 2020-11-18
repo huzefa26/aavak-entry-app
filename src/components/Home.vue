@@ -16,42 +16,41 @@
 				<div class="col-md-3 mb-3 form-group">
 					<label for="bags">Bags : </label>
 					<input type="number" class="form-control text-right" 
-						id="bags" v-model="bags">
+						id="bags" v-model="bags" @focus="$event.target.select()">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="weight">Weight : </label>
 					<input type="number" class="form-control text-right" 
-						id="weight" v-model="weight">
+						id="weight" v-model="weight" @focus="$event.target.select()">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="rate">Rate : </label>
 					<input type="number" class="form-control text-right" 
-						id="rate" v-model="rate">
+						id="rate" v-model="rate" @focus="$event.target.select()">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="rate">Total : </label>
 					<input type="number" class="form-control text-right" id="rate" :value="total" disabled>
 				</div>
 			</div>
-			<div class="form-row justify-content-md-between mt-3">
+			<div class="form-row justify-content-md-between">
 				<!-- <div class="col-md-9 form-group">
 					<label for="notes">Notes:</label>
 					<textarea class="form-control" id="notes" rows="3"></textarea>
 				</div> -->
-				<div class="col-md-auto mb-3 form-group pt-2 d-flex justify-content-center">
+				<div class="col-md-3 mb-3 form-group">
+					<label for="date">Date: </label>
+					<input type="date" class="form-control" 
+						id="date" v-model="date">
+				</div>
+				<!-- <div class="col-md-auto mb-3 form-group pt-2 d-flex justify-content-center">
 					<label class="checkbox">
-						<input type="checkbox" id="gotBill" v-model="gotBill" />
+						<input type="checkbox" id="gotBill"	 v-model="gotBill" />
 						<span class="default"></span>
 					</label>
 					<label for="gotBill" class="ls-5 px-2">Bill Received ?</label>
-				</div>
-				<!-- <div class="alert alert-warning alert-dismissible fade show" role="alert">
-					<strong>Holy guacamole!</strong> You should check in on some of those fields below.
-					<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-						<span aria-hidden="true">&times;</span>
-					</button>
 				</div> -->
-				<div class="col-md-auto mb-3 form-group d-flex justify-content-center">
+				<div class="col-md-auto mb-3 form-group d-flex justify-content-center align-items-end">
 					<button class="btn btn-light border px-3" @click="saveEntry">Add</button>
 				</div>
 			</div>
@@ -71,7 +70,7 @@
 		data() {
 			return {
 				names: [],
-				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'], // this.$store.state.paddyTypes,
+				types: ['Basmati', 'Black Paddy', 'Dabra', 'Guj-17', 'Gujari', 'Jira', 'Kolam', 'Mamra', 'Parimal'], // this.$store.state.paddyTypes,
 
 				name: '',
 				type: '',
@@ -116,21 +115,12 @@
 					return;
 				}
 				this.name = this.name.toLowerCase();
-				if (Object.keys(this.names).includes(this.name)) {
-					for(let name in this.names) {
-						if (name == this.name) {
-							++this.names[name];
-						}
-					}
-					axios.put('names.json/?print=silent', this.names)
+				if (this.names[this.name] == undefined) {
+					this.names[this.name] = 0;
+				}
+				axios.put('names/'+this.name+'.json/?print=silent', ++this.names[this.name])
 					.then(()=>{})
 					.catch(err => console.error(err));
-				} else {
-					let nameObj = JSON.parse('{"'+this.name+'": 1}');
-					axios.patch('names.json/?print=silent', nameObj)
-					.then(() => this.names[this.name]=1)
-					.catch(err => console.error(err));
-				}
 				axios.post('entries/'+this.date+'/'+this.name+'.json/?print=silent', {
 					type: this.type,
 					bags: parseInt(this.bags),
@@ -161,6 +151,7 @@
 	div.wrapper, 
 	input[type=number], 
 	input[type=text], 
+	input[type=date], 
 	button {
 		font-size: 120%;
 	}

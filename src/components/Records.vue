@@ -1,6 +1,6 @@
 <template>
 <div class="container">
-	<h4>Entries from {{ date }} :</h4>
+	<h4>Entries from {{ showDate }} :</h4>
 	<hr>
 
 	<div v-if="isLoading" class="h5 text-center mt-3">
@@ -25,8 +25,8 @@
 					<th scope="col" class="text-center">Bags</th>
 					<th scope="col" class="text-center">Weight</th>
 					<th scope="col" class="text-center">Rate</th>
-					<th scope="col" class="text-center">Amount</th>
-					<th scope="col" class="text-center">Bill?</th>
+					<th scope="col" class="text-center">Price</th>
+					<!-- <th scope="col" class="text-center">Bill?</th> -->
 					<th v-if="isAdmin" scope="col" class="text-center">Actions</th>
 				</tr>
 			</thead>
@@ -39,18 +39,13 @@
 					<td class="text-center">{{ entry.weight }}</td>
 					<td class="text-center">{{ entry.rate }}</td>
 					<td class="text-center">{{ (entry.weight * entry.rate).toFixed(2) }}</td>
-					<td class="text-center" style="color: green">{{ entry.gotBill ? "&#10003;" : ""}}</td> <!-- &#10007; -->
+					<!-- <td class="text-center" style="color: green">{{ entry.gotBill ? "&#10003;" : ""}}</td> --> <!-- &#10007; -->
 					<td class="text-center">
-						<!-- <router-link tag="span" class="btn py-0" :to="'/edit/'+date+'/'+name+'/'+idx+'/'"> -->
 						<span class="btn py-0" @click="editEntry(name, idx)">
 							<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
-							<!-- <img src="https://img.icons8.com/fluent/24/000000/edit.png"/> -->
-						<!-- </router-link> -->
 						</span>
 						<span class="btn py-0" @click="deleteEntry(name, idx)">
 							<i class="fa fa-trash-o" aria-hidden="true"></i>
-							<!-- <img src="https://img.icons8.com/flat_round/24/000000/delete-sign.png"/> -->
-							<!-- <span>&#10060;</span> -->
 						</span>
 					</td>
 				</tr>
@@ -61,9 +56,9 @@
 					<td class="text-center">{{ sumOfBags(name) }}</td>
 					<td class="text-center">{{ sumOfWeight(name) }}</td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ sumOfAmount(name).toFixed(2) }}</td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ (sumOfAmount(name)*1.005).toFixed(2) }}</td>
+					<td class="text-center">{{ sumOfPrice(name).toFixed(2) }}</td>
+					<!-- <td class="text-center"></td> -->
+					<td class="text-center">{{ (sumOfPrice(name)*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
 			<tbody>
@@ -74,20 +69,26 @@
 					<td class="text-center">{{ totalBags() }}</td>
 					<td class="text-center">{{ totalWeight() }}</td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ totalAmount().toFixed(2) }}</td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ (totalAmount()*1.005).toFixed(2) }}</td>
+					<td class="text-center">{{ totalPrice().toFixed(2) }}</td>
+					<!-- <td class="text-center"></td> -->
+					<td class="text-center">{{ (totalPrice()*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
 		</table>
+
+		<report :stats="typeStats"></report>
 	</div>
 </div>
 </template>
 
 <script>
 import axios from 'axios';
+import Report from './Report';
 
 export default {
+	components: {
+		Report
+	},
 	data() {
 		return {
 			date: this.$route.params.date,
@@ -97,10 +98,12 @@ export default {
 			names: [],
 			cnti: 0,
 			tableChanged: false,
+			showDate: '',
+			typeStats: [],
 		}
 	},
 	created() {
-		// console.log(this.date);
+		this.showDate = (new Date(this.date)).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 		axios.get('entries/' + this.date + '.json/').then(res => {
 			if (res.data != null) {
 				this.records = res.data;
@@ -109,6 +112,8 @@ export default {
 			}
 			this.isLoading = false;
 			this.cnti = 0;
+
+			// get all sums
 		}).catch(err => console.error(err));
 	},
 	methods: {
@@ -159,7 +164,7 @@ export default {
 			Object.values(this.records[name]).forEach(record=>{sm+=record.weight;});
 			return sm;
 		},
-		sumOfAmount(name) {
+		sumOfPrice(name) {
 			let sm = 0;
 			Object.values(this.records[name]).forEach(record=>{sm+=record.rate * record.weight;});
 			return sm;
@@ -183,9 +188,9 @@ export default {
 			this.names.forEach(name=>{sm+=this.sumOfWeight(name);});
 			return sm;
 		},
-		totalAmount() {
+		totalPrice() {
 			let sm = 0;
-			this.names.forEach(name=>{sm+=this.sumOfAmount(name);});
+			this.names.forEach(name=>{sm+=this.sumOfPrice(name);});
 			return sm;
 		},
 

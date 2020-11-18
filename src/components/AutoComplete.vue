@@ -2,6 +2,7 @@
 	<div class="autocomplete">
 		<input
 			type="text"
+			autocomplete="off"
 			:id="inputId"
 			class="form-control"
 			v-model="search"
@@ -9,7 +10,9 @@
 			@keydown.down="onArrowDown"
 			@keydown.up="onArrowUp"
 			@keydown.enter="onEnter"
+			@focus="$event.target.select()"
 		/>
+		<!-- onClick="this.setSelectionRange(0, this.value.length)" -->
 		<!-- <div id="autocomplete-results" v-show="isOpen" class="autocomplete-results container">
 			<div v-if="isLoading" class="row"><div class="loading col">Loading results...</div></div>
 			<div v-else>

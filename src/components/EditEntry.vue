@@ -66,7 +66,7 @@
 				date: null, //this.$route.params.date,
 				name: null, //this.$route.params.name,
 				names: [],
-				types: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'], // this.$store.state.paddyTypes,
+				types: ['Basmati', 'Black Paddy', 'Dabra', 'Guj-17', 'Gujari', 'Jira', 'Kolam', 'Mamra', 'Parimal'], // this.$store.state.paddyTypes,
 
 				prevName: '',
 				type: '',
