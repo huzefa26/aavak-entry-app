@@ -9,7 +9,7 @@ export default new Vuex.Store({
 		storage: window.sessionStorage,
 	})],
 	state: {
-		// paddyTypes: ['Dabra', 'Jira', 'Kolam', 'Parimal', 'Guj-17', 'Gujari', 'Basmati', 'Black Paddy'],
+		paddyTypes: ['Basmati', 'Black Paddy', 'Dabra', 'Guj-17', 'Gujari', 'Jira', 'Kolam', 'Mamra', 'Parimal'],
 		// records: [],
 		editEntry: null
 	},

@@ -70,7 +70,7 @@
 		data() {
 			return {
 				names: [],
-				types: ['Basmati', 'Black Paddy', 'Dabra', 'Guj-17', 'Gujari', 'Jira', 'Kolam', 'Mamra', 'Parimal'], // this.$store.state.paddyTypes,
+				types: this.$store.state.paddyTypes,
 
 				name: '',
 				type: '',

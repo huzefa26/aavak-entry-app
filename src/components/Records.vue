@@ -10,13 +10,16 @@
 			</div>
 		</div>
 	</div>
+	
 	<div v-else-if="records.length<=0" class="h5 text-center">
 		<div class="alert alert-warning" role="alert">
 			No Entries found on this date!
 		</div>
 	</div>
+
 	<div v-else class="table-responsive">
-		<table class="table" :key="tableChanged">
+		<table class="table mb-5" :key="tableChanged">
+
 			<thead class="thead-dark">
 				<tr>
 					<th scope="col">#</th>
@@ -30,6 +33,7 @@
 					<th v-if="isAdmin" scope="col" class="text-center">Actions</th>
 				</tr>
 			</thead>
+
 			<tbody v-for="(name, ni) in names" :key="ni">
 				<tr v-for="(entry, idx) in records[name]" :key="idx" class="text-muted">
 					<th scope="row"><!-- {{ ni+1 }}.{{ countSNo() }} --></th>
@@ -49,34 +53,38 @@
 						</span>
 					</td>
 				</tr>
+
 				<tr class="bg-light" style="border-bottom:2px solid grey; font-weight: 450;">
 					<th scope="row"></th>
 					<td style="white-space: nowrap;">{{ titleCase(name) }}</td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ sumOfBags(name) }}</td>
-					<td class="text-center">{{ sumOfWeight(name) }}</td>
+					<td class="text-center">{{ nameStats[name].bags }}</td>
+					<td class="text-center">{{ nameStats[name].weight }}</td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ sumOfPrice(name).toFixed(2) }}</td>
+					<td class="text-center">{{ nameStats[name].price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center">{{ (sumOfPrice(name)*1.005).toFixed(2) }}</td>
+					<td class="text-center">{{ (nameStats[name].price*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
+
 			<tbody>
 				<tr style="border-bottom:2px solid grey; font-size: 103%;">
 					<th scope="row"></th>
 					<td ></td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ totalBags() }}</td>
-					<td class="text-center">{{ totalWeight() }}</td>
+					<td class="text-center">{{ dayStats.bags }}</td>
+					<td class="text-center">{{ dayStats.weight }}</td>
 					<td class="text-center"></td>
-					<td class="text-center">{{ totalPrice().toFixed(2) }}</td>
+					<td class="text-center">{{ dayStats.price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center">{{ (totalPrice()*1.005).toFixed(2) }}</td>
+					<td class="text-center">{{ (dayStats.price*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
+
 		</table>
 
 		<report :stats="typeStats"></report>
+
 	</div>
 </div>
 </template>
@@ -99,21 +107,47 @@ export default {
 			cnti: 0,
 			tableChanged: false,
 			showDate: '',
-			typeStats: [],
+			nameStats: {},
+			typeStats: {},
+			dayStats: {},
 		}
 	},
 	created() {
-		this.showDate = (new Date(this.date)).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+		this.showDate = (new Date(this.date)).toLocaleDateString(
+			[], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+		);
+		this.dayStats = {'bags': 0, 'weight': 0, 'price': 0};
+
 		axios.get('entries/' + this.date + '.json/').then(res => {
 			if (res.data != null) {
 				this.records = res.data;
 				this.names = Object.keys(this.records);
 				this.names.sort();
+				this.cnti = 0;
+			
+				// get all sums
+				this.names.forEach(name => {
+					this.nameStats[name] = {'bags': 0, 'weight': 0, 'price': 0};
+					Object.values(this.records[name]).forEach(entry => {
+						this.dayStats.bags += entry.bags;
+						this.dayStats.weight += entry.weight;
+						this.dayStats.price += entry.weight * entry.rate;
+
+						this.nameStats[name].bags += entry.bags;
+						this.nameStats[name].weight += entry.weight;
+						this.nameStats[name].price += entry.weight * entry.rate;
+
+						if (this.typeStats[entry.type] == undefined) {
+							this.typeStats[entry.type] = {'bags': 0, 'weight': 0, 'price': 0};
+						}
+						this.typeStats[entry.type].bags += entry.bags;
+						this.typeStats[entry.type].weight += entry.weight;
+						this.typeStats[entry.type].price += entry.weight * entry.rate;
+						// this.typeStats[type].avgRate += ; // build logic
+					});
+				});
 			}
 			this.isLoading = false;
-			this.cnti = 0;
-
-			// get all sums
 		}).catch(err => console.error(err));
 	},
 	methods: {
@@ -121,6 +155,7 @@ export default {
 		// 	if (this.isLoading) return 0;
 		// 	return ++this.cnti;
 		// },
+
 		editEntry(name, id) {
 			let toEdit = this.records[name][id];
 			toEdit.date = this.date;
@@ -129,6 +164,7 @@ export default {
 			this.$store.commit('setEditEntry', toEdit);
 			this.$router.push('/edit');
 		},
+
 		deleteEntry(name, id) {
 			
 			axios.delete('entries/'+this.date+'/'+name+'/'+id+'.json/?print=silent')
@@ -154,21 +190,22 @@ export default {
 					}
 				}).catch(err => console.error(err));
 		},
-		sumOfBags(name) {
-			let sm = 0;
-			Object.values(this.records[name]).forEach(record=>{sm+=record.bags;});
-			return sm;
-		},
-		sumOfWeight(name) {
-			let sm = 0;
-			Object.values(this.records[name]).forEach(record=>{sm+=record.weight;});
-			return sm;
-		},
-		sumOfPrice(name) {
-			let sm = 0;
-			Object.values(this.records[name]).forEach(record=>{sm+=record.rate * record.weight;});
-			return sm;
-		},
+
+		// sumOfBags(name) {
+		// 	let sm = 0;
+		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.bags;});
+		// 	return sm;
+		// },
+		// sumOfWeight(name) {
+		// 	let sm = 0;
+		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.weight;});
+		// 	return sm;
+		// },
+		// sumOfPrice(name) {
+		// 	let sm = 0;
+		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.rate * record.weight;});
+		// 	return sm;
+		// },
 
 		titleCase(str) {
 			let splitStr = str.toLowerCase().split(' ');
@@ -178,21 +215,21 @@ export default {
 			return splitStr.join(' '); 
 		},
 
-		totalBags() {
-			let sm = 0;
-			this.names.forEach(name=>{sm+=this.sumOfBags(name);});
-			return sm;
-		},
-		totalWeight() {
-			let sm = 0;
-			this.names.forEach(name=>{sm+=this.sumOfWeight(name);});
-			return sm;
-		},
-		totalPrice() {
-			let sm = 0;
-			this.names.forEach(name=>{sm+=this.sumOfPrice(name);});
-			return sm;
-		},
+		// totalBags() {
+		// 	let sm = 0;
+		// 	this.names.forEach(name=>{sm+=this.sumOfBags(name);});
+		// 	return sm;
+		// },
+		// totalWeight() {
+		// 	let sm = 0;
+		// 	this.names.forEach(name=>{sm+=this.sumOfWeight(name);});
+		// 	return sm;
+		// },
+		// totalPrice() {
+		// 	let sm = 0;
+		// 	this.names.forEach(name=>{sm+=this.sumOfPrice(name);});
+		// 	return sm;
+		// },
 
 	}
 }
@@ -202,5 +239,6 @@ export default {
 	table.table {
 		font-size:105%;
 		font-family: Verdana;
+		/*margin-bottom: 5px;*/
 	}
 </style>
