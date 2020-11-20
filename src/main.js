@@ -4,7 +4,7 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 
-axios.defaults.baseURL = 'https://aavak-app.firebaseio.com/';
+axios.defaults.baseURL = 'REMOVED_FOR_DATA_PRIVACY';
 
 Vue.config.productionTip = false;
 
