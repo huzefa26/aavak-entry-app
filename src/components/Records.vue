@@ -11,7 +11,7 @@
 		</div>
 	</div>
 	
-	<div v-else-if="records.length<=0" class="h5 text-center">
+	<div v-else-if="isEmptyObject(records)" class="h5 text-center">
 		<div class="alert alert-warning" role="alert">
 			No Entries found on this date!
 		</div>
@@ -80,11 +80,9 @@
 					<td class="text-center">{{ (dayStats.price*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
-
 		</table>
 
-		<report :stats="typeStats"></report>
-
+		<report :stats="typeStats" :key="statsChanged"></report>
 	</div>
 </div>
 </template>
@@ -100,12 +98,13 @@ export default {
 	data() {
 		return {
 			date: this.$route.params.date,
-			records: [],
+			records: {},
 			isAdmin: true,
 			isLoading: true,
 			names: [],
 			cnti: 0,
-			tableChanged: false,
+			tableChanged: Math.random(),
+			statsChanged: Math.random(),
 			showDate: '',
 			nameStats: {},
 			typeStats: {},
@@ -121,11 +120,11 @@ export default {
 		axios.get('entries/' + this.date + '.json/').then(res => {
 			if (res.data != null) {
 				this.records = res.data;
+				this.cnti = 0;
+				// get all sums
 				this.names = Object.keys(this.records);
 				this.names.sort();
-				this.cnti = 0;
-			
-				// get all sums
+
 				this.names.forEach(name => {
 					this.nameStats[name] = {'bags': 0, 'weight': 0, 'price': 0};
 					Object.values(this.records[name]).forEach(entry => {
@@ -143,7 +142,6 @@ export default {
 						this.typeStats[entry.type].bags += entry.bags;
 						this.typeStats[entry.type].weight += entry.weight;
 						this.typeStats[entry.type].price += entry.weight * entry.rate;
-						// this.typeStats[type].avgRate += ; // build logic
 					});
 				});
 			}
@@ -155,6 +153,34 @@ export default {
 		// 	if (this.isLoading) return 0;
 		// 	return ++this.cnti;
 		// },
+		removeEntryStats(name, id) {
+			let entry = this.records[name][id];
+			this.dayStats.bags -= entry.bags;
+			this.dayStats.weight -= entry.weight;
+			this.dayStats.price -= entry.weight * entry.rate;
+
+			this.nameStats[name].bags -= entry.bags;
+			this.nameStats[name].weight -= entry.weight;
+			this.nameStats[name].price -= entry.weight * entry.rate;
+			if (this.nameStats[name].weight == 0 && this.nameStats[name].price == 0) {
+				this.names.splice(this.names.indexOf(name), 1);
+			}
+
+			this.typeStats[entry.type].bags -= entry.bags;
+			this.typeStats[entry.type].weight -= entry.weight;
+			this.typeStats[entry.type].price -= entry.weight * entry.rate;
+			if (this.typeStats[entry.type].weight == 0 && this.typeStats[entry.type].price == 0) {
+				delete this.typeStats[entry.type];
+			}
+
+			delete this.records[name][id];
+			if (this.isEmptyObject(this.records[name])) {
+				delete this.records[name];
+			}
+
+			++this.tableChanged;
+			++this.statsChanged;
+		},
 
 		editEntry(name, id) {
 			let toEdit = this.records[name][id];
@@ -166,70 +192,17 @@ export default {
 		},
 
 		deleteEntry(name, id) {
-			
-			axios.delete('entries/'+this.date+'/'+name+'/'+id+'.json/?print=silent')
-				.then(res => {
-					delete this.records[name][id];
-					this.tableChanged ^= true;
-					// this.$router.push('/records/' + this.date + '/');
-				})
-				.catch(err => console.error(err));
-
-			// decrement names.json count
-			axios.get('names/'+name+'.json/')
-				.then(res => {
-					let cnt = res.data;
-					if (cnt == null) {
-						//
-					} else if (--cnt > 0) {
-						axios.put('names/'+name+'.json/?print=silent', cnt)
-							.then(() => {}).catch(err => console.error(err));
-					} else {
-						axios.delete('names/'+name+'.json/?print=silent')
-							.then(() => {}).catch(err => console.error(err));
-					}
-				}).catch(err => console.error(err));
-		},
-
-		// sumOfBags(name) {
-		// 	let sm = 0;
-		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.bags;});
-		// 	return sm;
-		// },
-		// sumOfWeight(name) {
-		// 	let sm = 0;
-		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.weight;});
-		// 	return sm;
-		// },
-		// sumOfPrice(name) {
-		// 	let sm = 0;
-		// 	Object.values(this.records[name]).forEach(record=>{sm+=record.rate * record.weight;});
-		// 	return sm;
-		// },
-
-		titleCase(str) {
-			let splitStr = str.toLowerCase().split(' ');
-			for (let i = 0; i < splitStr.length; i++) {
-				splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
+			let msg = "Delete "+ this.titleCase(name) +"'s entry of "+ this.records[name][id].weight +"(kgs) x Rs "+ this.records[name][id].rate +" = Rs "+ (this.records[name][id].weight*this.records[name][id].rate).toFixed(2);
+			//"Are you sure you want to delete this entry?";
+			if (confirm(msg)) {
+				axios.delete('entries/'+this.date+'/'+name+'/'+id+'.json/?print=silent')
+					.then(res => {
+						this.removeEntryStats(name, id);
+						this.$store.dispatch('decreaseNameCount', name);
+					})
+					.catch(err => console.error(err));
 			}
-			return splitStr.join(' '); 
 		},
-
-		// totalBags() {
-		// 	let sm = 0;
-		// 	this.names.forEach(name=>{sm+=this.sumOfBags(name);});
-		// 	return sm;
-		// },
-		// totalWeight() {
-		// 	let sm = 0;
-		// 	this.names.forEach(name=>{sm+=this.sumOfWeight(name);});
-		// 	return sm;
-		// },
-		// totalPrice() {
-		// 	let sm = 0;
-		// 	this.names.forEach(name=>{sm+=this.sumOfPrice(name);});
-		// 	return sm;
-		// },
 
 	}
 }

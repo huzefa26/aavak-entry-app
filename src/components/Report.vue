@@ -25,7 +25,7 @@
 				
 				<tr>
 					<th scope="row">Avg. Rate</th>
-					<td v-for="type in types" :key="type" class="text-right">{{ (stats[type].price / stats[type].weight).toFixed(3) }}</td>
+					<td v-for="type in types" :key="type" class="text-right">{{ parseFloat((stats[type].price / stats[type].weight).toFixed(3)) }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 

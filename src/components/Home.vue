@@ -5,7 +5,7 @@
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete inputId="name" :items="Object.keys(names)" @input="name=$event"></auto-complete>
+					<auto-complete inputId="name" :items="names" @input="name=$event"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
@@ -20,12 +20,12 @@
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="weight">Weight : </label>
-					<input type="number" class="form-control text-right" 
+					<input type="number" step="0.01" class="form-control text-right" 
 						id="weight" v-model="weight" @focus="$event.target.select()">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
 					<label for="rate">Rate : </label>
-					<input type="number" class="form-control text-right" 
+					<input type="number" step="0.01" class="form-control text-right" 
 						id="rate" v-model="rate" @focus="$event.target.select()">
 				</div>
 				<div class="col-md-3 mb-3 form-group">
@@ -51,7 +51,9 @@
 					<label for="gotBill" class="ls-5 px-2">Bill Received ?</label>
 				</div> -->
 				<div class="col-md-auto mb-3 form-group d-flex justify-content-center align-items-end">
-					<button class="btn btn-light border px-3" @click="saveEntry">Add</button>
+					<button class="btn btn-light border px-3" @click="saveEntry" :disabled="isAdding">
+						{{ isAdding ? "Adding" : "Add" }}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -69,17 +71,16 @@
 		},
 		data() {
 			return {
-				names: [],
+				// names: this.$store.state.names,
 				types: this.$store.state.paddyTypes,
-
 				name: '',
 				type: '',
 				bags: 0,
 				weight: 0,
 				rate: 0.0,
 				gotBill: false,
-
-				date: ''
+				date: '',
+				isAdding: false,
 			};
 		},
 		created() {
@@ -87,17 +88,13 @@
 			this.date = date.getFullYear().toString() + '-'
 				 + (date.getMonth() + 1).toString().padStart(2, 0) + '-'
 				 + date.getDate().toString().padStart(2, 0);
-				
-			axios.get('names.json/')
-				.then(res => {
-					if (res.data != null) {
-						this.names = res.data;
-					}
-				}).catch(err => console.error(err));
 		},
 		computed: {
 			total() {
 				return (this.weight * this.rate/* * 1.005*/).toFixed(2);
+			},
+			names() {
+				return Object.keys(this.$store.state.names);
 			}
 		},
 		methods: {
@@ -114,13 +111,11 @@
 				if (!this.validEntry()) {
 					return;
 				}
+				this.isAdding = true;
 				this.name = this.name.toLowerCase();
-				if (this.names[this.name] == undefined) {
-					this.names[this.name] = 0;
-				}
-				axios.put('names/'+this.name+'.json/?print=silent', ++this.names[this.name])
-					.then(()=>{})
-					.catch(err => console.error(err));
+
+				this.$store.dispatch('increaseNameCount', this.name);
+
 				axios.post('entries/'+this.date+'/'+this.name+'.json/?print=silent', {
 					type: this.type,
 					bags: parseInt(this.bags),
@@ -130,15 +125,8 @@
 				}).then(res => {
 					this.bags = this.weight = this.rate = 0
 					this.gotBill = false
+					this.isAdding = false;
 				}).catch(err => console.error(err));
-			},
-
-			titleCase(str) {
-				let splitStr = str.toLowerCase().split(' ');
-				for (let i = 0; i < splitStr.length; i++) {
-					splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-				}
-				return splitStr.join(' '); 
 			},
 
 		}

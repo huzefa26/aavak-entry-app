@@ -97,7 +97,7 @@
 			filterResults() {
 				this.results = this.items.filter((item) => {
 					return item.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
-				}).map(result=>this.titleCase(result));
+				}).map(result => this.titleCase(result));
 			},
 			setResult(result) {
 				this.search = result;
@@ -121,14 +121,6 @@
 					this.isOpen = false;
 					// this.arrowCounter = -1;
 				}
-			},
-
-			titleCase(str) {
-				let splitStr = str.toLowerCase().split(' ');
-				for (let i = 0; i < splitStr.length; i++) {
-					splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-				}
-				return splitStr.join(' '); 
 			},
 		},
 		watch: {

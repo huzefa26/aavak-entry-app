@@ -17,6 +17,9 @@
 		name: 'App',
 		components: {
 			appHeader: Header
+		},
+		created() {
+			this.$store.dispatch('getNames');
 		}
 	};
 </script>

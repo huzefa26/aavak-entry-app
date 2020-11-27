@@ -6,7 +6,7 @@
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete inputId="name" :items="Object.keys(names)" @input="name=$event" :value="name"></auto-complete>
+					<auto-complete inputId="name" :items="names" @input="name=$event" :value="name"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
@@ -34,16 +34,23 @@
 					<input type="number" class="form-control text-right" id="rate" :value="total" disabled>
 				</div>
 			</div>
-			<div class="form-row justify-content-end mt-3">
-				<div class="col-md-auto mb-3 form-group pt-2 d-flex justify-content-center">
+			<div class="form-row justify-content-md-between">
+				<div class="col-md-3 mb-3 form-group">
+					<label for="date">Date: </label>
+					<input type="date" class="form-control" 
+						id="date" v-model="date">
+				</div>
+				<!-- <div class="col-md-auto mb-3 form-group pt-2 d-flex justify-content-center">
 					<label class="checkbox">
 						<input type="checkbox" id="gotBill" v-model="gotBill" />
 						<span class="default"></span>
 					</label>
 					<label for="gotBill" class="ls-5 px-2">Bill Received ?</label>
-				</div>
-				<div class="col-md-auto my-auto form-group">
-					<button class="btn btn-light border px-3" @click="updateEntry">Update</button>
+				</div> -->
+				<div class="col-md-auto mb-3 form-group d-flex justify-content-center align-items-end">
+					<button class="btn btn-light border px-3" @click="updateEntry" :disabled="isUpdating">
+						{{ isUpdating ? "Updating" : "Update" }}
+					</button>
 				</div>
 			</div>
 		</div>
@@ -65,15 +72,17 @@
 				id: null, //this.$route.params.id,
 				date: null, //this.$route.params.date,
 				name: null, //this.$route.params.name,
-				names: [],
+				names: Object.keys(this.$store.state.names),
 				types: this.$store.state.paddyTypes,
 
 				prevName: '',
+				prevDate: '',
 				type: '',
 				bags: 0,
 				weight: 0,
 				rate: 0.0,
 				gotBill: false,
+				isUpdating: false,
 			};
 		},
 		created() {
@@ -94,13 +103,7 @@
 			this.gotBill = data['gotBill'];
 
 			this.prevName = this.name;
-
-			axios.get('names.json/')
-			.then(res => {
-				if (res.data != null) {
-					this.names = res.data;
-				}
-			}).catch(err => console.error(err));
+			this.prevDate = this.date;
 
 			// axios.get('entries/'+this.date+'/'+this.name+'/'+this.id+'.json/')
 			// .then(res => {
@@ -137,64 +140,36 @@
 					// console.log("Bad entry")
 					return;
 				}
+				this.isUpdating = true;
 				let name = this.name.toLowerCase();
+
 				if (name != this.prevName) {
-					if (this.names[name] == undefined) {
-						// add new name
-						let newName = JSON.parse("{'"+name+"' : 1}");
-						axios.post('names.json/?print=silent', newName)
-							.then(() => {}).catch(err => console.log(err));
-						this.names.push(name);
-					} else {
-						// increase count
-						axios.get('names/'+name+'.json/')
-							.then(res => {
-								let cnt = res.data + 1;
-								axios.put('names/'+name+'.json/?print=silent', cnt)
-									.then(() => {}).catch(err => console.error(err));
-							}).catch(err => console.error(err));
-					}
-
-					// delete prev name if there are no other entries of it
-					axios.delete('entries/'+this.date+'/'+this.prevName+'/'+this.id+'.json/?print=silent')
-						.then(() => {}).catch(err => console.error(err));
-
-					axios.get('names/'+this.prevName+'.json/')
-						.then(res => {
-							let cnt = res.data;
-							if (cnt == null || cnt == 0) {
-							} else if (cnt == 1) {
-								axios.delete('names/'+this.prevName+'.json/?print=silent')
-									.then(() => {}).catch(err => console.error(err));
-							} else {
-								axios.put('names/'+this.prevName+'.json/?print=silent', cnt)
-									.then(() => {}).catch(err => console.error(err));
-							}
-						}).catch(err => console.error(err));
+					this.$store.dispatch('increaseNameCount', name);
 				}
+
 				let data = {
 					type: this.type,
 					bags: parseInt(this.bags),
 					weight: parseFloat(this.weight),
 					rate: parseFloat(this.rate),
-					gotBill: this.gotBill,
+					// gotBill: this.gotBill,
 				};
-				axios.put('entries/'+this.date+'/'+name+'/'+this.id+'.json/?print=silent', data)
-					.then(res => {
-						// console.log(res);
-						this.$router.push('/records/' + this.date + '/');
+
+				axios.delete('entries/'+this.prevDate+'/'+this.prevName+'/'+this.id+'.json/?print=silent')
+					.then(() => {
+						axios.put('entries/'+this.date+'/'+name+'/'+this.id+'.json/?print=silent', data)
+							.then(() => {
+								if (name != this.prevName) {
+									// delete prev name if there are no other entries of it
+									this.$store.dispatch('decreaseNameCount', this.prevName);
+								}
+								this.isUpdating = false;
+								this.$router.push('/records/' + this.date + '/');
+							})
+							.catch(err => console.error(err));
 					})
 					.catch(err => console.error(err));
 			},
-
-			titleCase(str) {
-				let splitStr = str.toLowerCase().split(' ');
-				for (let i = 0; i < splitStr.length; i++) {
-					splitStr[i] = splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
-				}
-				return splitStr.join(' '); 
-			},
-
 		},
 
 		beforeRouteLeave (to, from, next) {
@@ -215,6 +190,7 @@
 	div.wrapper, 
 	input[type=number], 
 	input[type=text], 
+	input[type=date], 
 	button {
 		font-size: 120%;
 	}
