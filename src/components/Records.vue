@@ -69,7 +69,9 @@
 					<td class="text-center" :class="{'py-0':printMode}"></td>
 					<td class="text-center" :class="{'py-0':printMode}">{{ nameStats[name].price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center" :class="{'py-0':printMode}">{{ (nameStats[name].price*1.005).toFixed(2) }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">
+						{{ (nameStats[name].price*1.005).toFixed(2) }} ({{ (nameStats[name].price*0.005).toFixed(2) }})
+					</td>
 				</tr>
 			</tbody>
 
@@ -83,7 +85,7 @@
 					<td class="text-center" :class="{'py-0':printMode}"></td>
 					<td class="text-center" :class="{'py-0':printMode}">{{ dayStats.price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center" :class="{'py-0':printMode}">{{ (dayStats.price*1.005).toFixed(2) }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ (dayStats.price*1.005).toFixed(2) }} ({{ (dayStats.price*0.005).toFixed(2) }})</td>
 				</tr>
 			</tbody>
 		</table>
