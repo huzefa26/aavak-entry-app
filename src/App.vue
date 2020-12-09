@@ -1,6 +1,6 @@
 <template>
 	<div id="app" class="container">
-		<app-header></app-header>
+		<app-header v-if="!printMode"></app-header>
 		<!-- <h1 class="heading mt-4">Entry</h1> -->
 		<!-- <hr> -->
 		
@@ -20,6 +20,11 @@
 		},
 		created() {
 			this.$store.dispatch('getNames');
+		},
+		computed: {
+			printMode() {
+				return this.$store.state.printMode;
+			}
 		}
 	};
 </script>
