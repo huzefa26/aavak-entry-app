@@ -1,37 +1,37 @@
 <template>
-	<div class="wrapper mt-2 mb-5">
+	<div class="wrapper" :class="printMode?'mt-0 mb-2':'mt-2 mb-5'">
 		<legend>Today's Summary:</legend>
 		<table class="table w-auto">
 			<!-- <caption class="text-center">Today's Summary</caption> -->
 			<thead class="">
 				<tr>
-					<th></th>
-					<th v-for="type in types" :key="type" scope="col" class="text-center">{{ type }}</th>
+					<th :class="{'py-0':printMode}"></th>
+					<th v-for="type in types" :key="type" scope="col" class="text-center" :class="{'py-0':printMode}">{{ type }}</th>
 					<!-- <th scope="col" class="text-center">Total</th> -->
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
-					<th scope="row">Bags</th>
-					<td v-for="type in types" :key="type" class="text-right">{{ stats[type].bags }}</td>
+					<th scope="row" :class="{'py-0':printMode}">Bags</th>
+					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ stats[type].bags }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 				
 				<tr>
-					<th scope="row">Weight</th>
-					<td v-for="type in types" :key="type" class="text-right">{{ stats[type].weight }}</td>
+					<th scope="row" :class="{'py-0':printMode}">Weight</th>
+					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ stats[type].weight }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 				
 				<tr>
-					<th scope="row">Avg. Rate</th>
-					<td v-for="type in types" :key="type" class="text-right">{{ parseFloat((stats[type].price / stats[type].weight).toFixed(3)) }}</td>
+					<th scope="row" :class="{'py-0':printMode}">Avg. Rate</th>
+					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ parseFloat((stats[type].price / stats[type].weight).toFixed(3)) }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 
 				<tr>
-					<th scope="row">Price</th>
-					<td v-for="type in types" :key="type" class="text-right">{{ stats[type].price }}</td>
+					<th scope="row" :class="{'py-0':printMode}">Price</th>
+					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ stats[type].price }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 			</tbody>
@@ -41,7 +41,7 @@
 
 <script>
 	export default {
-		props: ['stats'],
+		props: ['stats', 'printMode'],
 		data () {
 			return {
 				types: null,

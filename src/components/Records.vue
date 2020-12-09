@@ -1,6 +1,12 @@
 <template>
-<div class="container">
-	<h4>Entries from {{ showDate }} :</h4>
+<div class="container" :class="printMode?'mt-3':''">
+	<div class="d-flex justify-content-between">
+		<h4>Entries from {{ showDate }} :</h4>
+		<button v-if="!isLoading && !isEmptyObject(records)" 
+				class="btn border" 
+				:class="printMode?'print-on':'print-off'" 
+				@click="togglePrintMode">Print Mode : {{printMode ? "On" : "Off"}}</button>
+	</div>
 	<hr>
 
 	<div v-if="isLoading" class="h5 text-center mt-3">
@@ -18,71 +24,71 @@
 	</div>
 
 	<div v-else class="table-responsive">
-		<table class="table mb-5" :key="tableChanged">
+		<table class="table" :class="printMode?'mb-3':'mb-5'" :key="tableChanged">
 
 			<thead class="thead-dark">
 				<tr>
-					<th scope="col">#</th>
-					<th scope="col">Name</th>
-					<th scope="col" class="text-center">Paddy</th>
-					<th scope="col" class="text-center">Bags</th>
-					<th scope="col" class="text-center">Weight</th>
-					<th scope="col" class="text-center">Rate</th>
-					<th scope="col" class="text-center">Price</th>
+					<th scope="col" :class="{'py-0':printMode}">#</th>
+					<th scope="col" :class="{'py-0':printMode}">Name</th>
+					<th scope="col" class="text-center" :class="{'py-0':printMode}">Paddy</th>
+					<th scope="col" class="text-center" :class="{'py-0':printMode}">Bags</th>
+					<th scope="col" class="text-center" :class="{'py-0':printMode}">Weight</th>
+					<th scope="col" class="text-center" :class="{'py-0':printMode}">Rate</th>
+					<th scope="col" class="text-center" :class="{'py-0':printMode}">Price</th>
 					<!-- <th scope="col" class="text-center">Bill?</th> -->
-					<th v-if="isAdmin" scope="col" class="text-center">Actions</th>
+					<th v-if="isAdmin" scope="col" class="text-center" :class="{'py-0':printMode}">{{printMode?"+ M.F.":"Actions"}}</th>
 				</tr>
 			</thead>
 
 			<tbody v-for="(name, ni) in names" :key="ni">
 				<tr v-for="(entry, idx) in records[name]" :key="idx" class="text-muted">
-					<th scope="row"><!-- {{ ni+1 }}.{{ countSNo() }} --></th>
-					<td width="20%" ><!-- {{ i==0 ? titleCase(name) : "" }} --></td>
-					<td class="text-center">{{ entry.type }}</td>
-					<td class="text-center">{{ entry.bags }}</td>
-					<td class="text-center">{{ entry.weight }}</td>
-					<td class="text-center">{{ entry.rate }}</td>
-					<td class="text-center">{{ (entry.weight * entry.rate).toFixed(2) }}</td>
+					<th scope="row" :class="{'py-0':printMode}"><!-- {{ ni+1 }}.{{ countSNo() }} --></th>
+					<td width="20%" :class="{'py-0':printMode}"><!-- {{ i==0 ? titleCase(name) : "" }} --></td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ entry.type }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ entry.bags }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ entry.weight }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ entry.rate }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ (entry.weight * entry.rate).toFixed(2) }}</td>
 					<!-- <td class="text-center" style="color: green">{{ entry.gotBill ? "&#10003;" : ""}}</td> --> <!-- &#10007; -->
-					<td class="text-center">
-						<span class="btn py-0" @click="editEntry(name, idx)">
+					<td class="text-center" :class="{'py-0':printMode}">
+						<span v-if="!printMode" class="btn py-0" @click="editEntry(name, idx)">
 							<i class="fa fa-pencil-square-o" aria-hidden="true"></i>
 						</span>
-						<span class="btn py-0" @click="deleteEntry(name, idx)">
+						<span v-if="!printMode" class="btn py-0" @click="deleteEntry(name, idx)">
 							<i class="fa fa-trash-o" aria-hidden="true"></i>
 						</span>
 					</td>
 				</tr>
 
 				<tr class="bg-light" style="border-bottom:2px solid grey; font-weight: 450;">
-					<th scope="row"></th>
-					<td style="white-space: nowrap;">{{ titleCase(name) }}</td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ nameStats[name].bags }}</td>
-					<td class="text-center">{{ nameStats[name].weight }}</td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ nameStats[name].price.toFixed(2) }}</td>
+					<th scope="row" :class="{'py-0':printMode}"></th>
+					<td style="white-space: nowrap;" :class="{'py-0':printMode}">{{ titleCase(name) }}</td>
+					<td class="text-center" :class="{'py-0':printMode}"></td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ nameStats[name].bags }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ nameStats[name].weight }}</td>
+					<td class="text-center" :class="{'py-0':printMode}"></td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ nameStats[name].price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center">{{ (nameStats[name].price*1.005).toFixed(2) }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ (nameStats[name].price*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
 
 			<tbody>
 				<tr style="border-bottom:2px solid grey; font-size: 103%;">
-					<th scope="row"></th>
-					<td ></td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ dayStats.bags }}</td>
-					<td class="text-center">{{ dayStats.weight }}</td>
-					<td class="text-center"></td>
-					<td class="text-center">{{ dayStats.price.toFixed(2) }}</td>
+					<th scope="row" :class="{'py-0':printMode}"></th>
+					<td :class="{'py-0':printMode}"></td>
+					<td class="text-center" :class="{'py-0':printMode}"></td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ dayStats.bags }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ dayStats.weight }}</td>
+					<td class="text-center" :class="{'py-0':printMode}"></td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ dayStats.price.toFixed(2) }}</td>
 					<!-- <td class="text-center"></td> -->
-					<td class="text-center">{{ (dayStats.price*1.005).toFixed(2) }}</td>
+					<td class="text-center" :class="{'py-0':printMode}">{{ (dayStats.price*1.005).toFixed(2) }}</td>
 				</tr>
 			</tbody>
 		</table>
 
-		<report :stats="typeStats" :key="statsChanged"></report>
+		<report :stats="typeStats" :key="statsChanged" :printMode="printMode"></report>
 	</div>
 </div>
 </template>
@@ -109,9 +115,11 @@ export default {
 			nameStats: {},
 			typeStats: {},
 			dayStats: {},
+			printMode: false,
 		}
 	},
 	created() {
+		this.$store.state.printMode = false;
 		this.showDate = (new Date(this.date)).toLocaleDateString(
 			[], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
 		);
@@ -204,14 +212,27 @@ export default {
 			}
 		},
 
+		togglePrintMode() {
+			this.$store.state.printMode ^= true;
+			this.printMode ^= true;
+			if (this.printMode) {
+				//
+			} else {
+				//
+			}
+		}
 	}
 }
 </script>
 
 <style scoped>
 	table.table {
-		font-size:105%;
+		/*font-size:105%;*/
 		font-family: Verdana;
 		/*margin-bottom: 5px;*/
 	}
+/*
+	tbody tr td {
+		padding-bottom: 1px;
+	}*/
 </style>
