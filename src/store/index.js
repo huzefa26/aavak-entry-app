@@ -13,7 +13,8 @@ export default new Vuex.Store({
 	state: {
 		paddyTypes: ['Basmati', 'Black Paddy', 'Dabra', 'Guj-17', 'Gujari', 'Jira', 'Kolam', 'Mamra', 'Parimal'],
 		names: [],
-		editEntry: null
+		editEntry: null,
+		printMode: false,
 	},
 	
 	mutations: {
