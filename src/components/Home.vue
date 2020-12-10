@@ -5,7 +5,7 @@
 			<div class="form-row">
 				<div class="form-group col-md-8 mb-3">
 					<label for="name">Name : </label>
-					<auto-complete inputId="name" :items="names" @input="name=$event"></auto-complete>
+					<auto-complete inputId="name" :items="Object.keys(names)" @input="name=$event"></auto-complete>
 				</div>
 				<div class="form-group col-md-4 mb-3">
 					<label for="type">Paddy Type : </label>
@@ -94,7 +94,7 @@
 				return (this.weight * this.rate/* * 1.005*/).toFixed(2);
 			},
 			names() {
-				return Object.keys(this.$store.state.names);
+				return this.$store.state.names;
 			}
 		},
 		methods: {

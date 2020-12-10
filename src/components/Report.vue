@@ -31,7 +31,7 @@
 
 				<tr>
 					<th scope="row" :class="{'py-0':printMode}">Price</th>
-					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ stats[type].price }}</td>
+					<td v-for="type in types" :key="type" class="text-right" :class="{'py-0':printMode}">{{ stats[type].price.toFixed(3) }}</td>
 					<!-- <td class="text-right">{{ 0 }}</td> -->
 				</tr>
 			</tbody>

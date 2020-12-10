@@ -1,6 +1,6 @@
 <template>
 <div class="container" :class="printMode?'mt-3':''">
-	<div class="d-flex justify-content-between">
+	<div class="d-flex justify-content-between align-items-end">
 		<h4>Entries from {{ showDate }} :</h4>
 		<button v-if="!isLoading && !isEmptyObject(records)" 
 				class="btn border" 
@@ -228,13 +228,11 @@ export default {
 </script>
 
 <style scoped>
+
 	table.table {
 		/*font-size:105%;*/
 		font-family: Verdana;
 		/*margin-bottom: 5px;*/
 	}
-/*
-	tbody tr td {
-		padding-bottom: 1px;
-	}*/
+
 </style>
